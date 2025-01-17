@@ -124,3 +124,42 @@ class MalfunctioningDrone:
         if self.x == bot.x and self.y == bot.y:
             bot.energy -= 20
             print(f"Drone attacked bot at ({bot.x}, {bot.y}). Bot energy: {bot.energy}")
+
+
+class ScavengerSwarm:
+    def __init__(self, size=1):
+        self.size = size
+        self.x = self.y = None
+
+    def act(self, grid):
+        for dx in range(-1, 2):
+            for dy in range(-1, 2):
+                x, y = grid.wrap_coordinates(self.x + dx, self.y + dy)
+                for entity in grid.grid[x][y]:
+                    if isinstance(entity, (SurvivorBot, MalfunctioningDrone)):
+                        entity.energy -= 3
+
+        self.move_randomly(grid)
+
+    def move_randomly(self, grid):
+        dx, dy = random.choice([(0, 1), (0, -1), (1, 0), (-1, 0)])
+        grid.move_entity(self, self.x + dx, self.y + dy)
+
+
+grid = TechburgGrid(size=30)
+
+for _ in range(10):
+    grid.place_entity(SurvivorBot(bot_type="gatherer"), random.randint(0, 29), random.randint(0, 29))
+for _ in range(5):
+    grid.place_entity(RechargeStation(), random.randint(0, 29), random.randint(0, 29))
+for _ in range(20):
+    grid.place_entity(SparePart(size=random.choice(["small", "medium", "large"])), random.randint(0, 29), random.randint(0, 29))
+for _ in range(5):
+    grid.place_entity(MalfunctioningDrone(), random.randint(0, 29), random.randint(0, 29))
+for _ in range(3):
+    grid.place_entity(ScavengerSwarm(size=1), random.randint(0, 29), random.randint(0, 29))
+
+
+for step in range(100):
+    print(f"--- Step {step + 1} ---")
+    grid.update()
