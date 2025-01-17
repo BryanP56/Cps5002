@@ -93,3 +93,34 @@ class RechargeStation:
         if self.parts and bot.energy < 100:
             part = self.parts.pop(0)
             bot.energy = min(100, bot.energy + part.enhancement)
+
+
+class MalfunctioningDrone:
+    def __init__(self):
+        self.energy = 100
+        self.x = self.y = None
+
+    def act(self, grid):
+        if self.energy <= 20:
+            self.energy = min(100, self.energy + 10)
+            return
+
+        for dx in range(-3, 4):
+            for dy in range(-3, 4):
+                x, y = grid.wrap_coordinates(self.x + dx, self.y + dy)
+                for entity in grid.grid[x][y]:
+                    if isinstance(entity, SurvivorBot):
+                        self.chase_bot(grid, entity)
+                        return
+
+    def chase_bot(self, grid, bot):
+        dx = bot.x - self.x
+        dy = bot.y - self.y
+        if dx != 0:
+            dx = dx // abs(dx)
+        if dy != 0:
+            dy = dy // abs(dy)
+        grid.move_entity(self, self.x + dx, self.y + dy)
+        if self.x == bot.x and self.y == bot.y:
+            bot.energy -= 20
+            print(f"Drone attacked bot at ({bot.x}, {bot.y}). Bot energy: {bot.energy}")
